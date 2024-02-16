@@ -1,47 +1,56 @@
 import pygame
 import math
 
-# Пользователь вводит данные
-user_input_weight = float(input("Введите массу шара >>> "))
-user_input_radius = float(input("Введите радиус шара >>> "))
-
-# Цвета
+# Установка красного цвета для шарика
 RED = (255, 8, 8)
-WHITE = (255, 255, 255)
 
-# Ширина и высота экрана
+# Инициализация Pygame
+pygame.init()
+
+# Ввод пользовательских данных
+user_input_height = float(input("Введите высоту, с которой шарик начинает движение вниз >>> "))
+user_input_radius = float(input("Введите радиус шара >>> "))
+user_input_mass = float(input("Введите массу шара >>> "))
+
+# Настройки экрана
 display_width = 400
 display_height = 400
 
+# Начальное положение шарика
 x_position = display_width // 2 - 15
-y_position = display_height // 2 - 15
+y_position = user_input_height
 
-# Инициализируем игру
-pygame.init()
+# Создание экрана
 screen = pygame.display.set_mode((display_width, display_height))
 pygame.display.set_caption("Ball")
 clock = pygame.time.Clock()
 
 
-# Функция для расчета гравитации
-def gravity(height, weight):
+# Функция вычисления гравитационного ускорения для шарика с учетом его массы
+def gravity(height, mass):
     g = 9.81
-    coefficient = weight / 10
-    time = math.sqrt(2 * height / g)
-    speed = g * time * coefficient
+    acceleration = g * mass
+    time = math.sqrt(2 * height / acceleration)
+    speed = acceleration * time
     return time, speed
 
 
-# Падение шарика
-def fall(speed):
-    global y_position
-    y_position += speed
-
-    if y_position + user_input_radius >= display_height:
+# Функция обработки падения шарика
+def fall():
+    global y_position, speed
+    time, new_speed = gravity(display_height - user_input_radius - y_position, user_input_mass)
+    y_position += new_speed
+    speed = new_speed
+    if y_position + user_input_radius >= display_height and speed > 0:
         y_position = display_height - user_input_radius
         speed = 0
+        kinetic_energy = 0.5 * user_input_mass * speed ** 2
+        print(
+            f"Шарик коснулся нижней поверхности за {time:.2f} секунд. Кинетическая энергия в этот момент: {kinetic_energy:.2f} Дж"
+            )
 
-# цикл для завершения
+
+# Главный игровой цикл
 running = True
 while running:
     dt = clock.tick(60) / 1000
@@ -49,14 +58,11 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # Заполнение экрана
     screen.fill((255, 255, 255))
-    pygame.draw.circle(screen, RED, (x_position, int(y_position)), user_input_radius)
-    pygame.display.update()
 
-    time, speed = gravity(y_position - user_input_radius, user_input_weight)
-    fall(speed * dt)
+    fall()
 
+    # Отрисовка шарика на экране
     pygame.draw.circle(screen, RED, (x_position, int(y_position)), user_input_radius)
 
     pygame.display.update()
